@@ -16,7 +16,7 @@
 %      `\\//`   \\   \./    \\ /     //    \\./   \\   //   \\ |/ /
 %     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[fontset=fandol,toc=true,type=doctor,stage=opening,campus=shenzhen]{hithesisart}
+\documentclass[fontset=fandol,shenzhenfonts=false,toc=true,type=doctor,stage=opening,campus=shenzhen]{hithesisart}
 % 此处选项中不要有空格
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 必填选项
@@ -29,6 +29,9 @@
 %   含义：校区选项，默认harbin
 % fontset=windows|mac|ubuntu|fandol
 %   含义：前三个对应各自系统，fandol是开源字体。
+% shenzhenfonts=true|false
+%   含义：为深圳本科开题启用宋体、黑体和 Times New Roman，默认false。
+%   true时覆盖默认字体配置，需安装上述字体；其他校区、学位和阶段不受影响。
 % toc=true|false
 %   含义：是否显示目录，默认true
 % newtxmath=true|false
@@ -48,7 +51,6 @@
 %   在加入此选项前是左对齐，但这使文献达到100篇时第1-9篇文献标号后空格过大。
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
 \graphicspath{{figures/}}
 
 
@@ -57,9 +59,16 @@
 \input{front/coverart.tex}
 \makecover
 
+% 根据上方的 type、stage、campus 选项选择对应正文，只启用一项。
+% 切换时须注释原「深圳博士开题报告」的 \input，再取消注释目标模板。
+
 % 深圳博士开题报告 -----------------------------------------------
 
 \input{body/report_shenzhen_doctor_opening}
+
+% 深圳校区本科生开题报告结构（2026）-------------------------------------------
+% \input{body/report_shenzhen_bachelor_opening}
+% -------------------------------------------------------------
 
 % 威海校区本科生开题报告结构 ----------------------------------------
 % \input{body/report_weihai_bachelor_opening}
