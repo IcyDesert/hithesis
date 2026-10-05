@@ -3941,8 +3941,11 @@ delim_1 "\\hspace*{\\fill}"
   \captionsetup[table]{skip=1.5bp}
 \fi
 \renewcommand\normalsize{%
-  \@setfontsize\normalsize{12bp}{%
-    \ifhit@szbachelor\hitreportbaselineskip\else20.50398bp\fi}%
+  \ifhit@szbachelor
+    \@setfontsize\normalsize{12bp}{\hitreportbaselineskip}%
+  \else
+    \@setfontsize\normalsize{12bp}{20.50398bp}%
+  \fi
   \abovedisplayskip=8pt
   \abovedisplayshortskip=8pt
   \belowdisplayskip=\abovedisplayskip
@@ -4512,9 +4515,9 @@ delim_1 "\\hspace*{\\fill}"
     \settowidth\@tempdima{#1#2}%
     \edef\@pnumwidth{\the\dimexpr\@tempdima+1.5bp\relax}%
   }
-  \pretocmd{\cftsecfillnum}{\hit@szbachelor@tocpnum{\cftsecpagefont}{#1}}{}{}
-  \pretocmd{\cftsubsecfillnum}{\hit@szbachelor@tocpnum{\cftsubsecpagefont}{#1}}{}{}
-  \pretocmd{\cftsubsubsecfillnum}{\hit@szbachelor@tocpnum{\cftsubsubsecpagefont}{#1}}{}{}
+  \pretocmd{\l@section}{\hit@szbachelor@tocpnum{\cftsecpagefont}{#2}}{}{}
+  \pretocmd{\l@subsection}{\hit@szbachelor@tocpnum{\cftsubsecpagefont}{#2}}{}{}
+  \pretocmd{\l@subsubsection}{\hit@szbachelor@tocpnum{\cftsubsubsecpagefont}{#2}}{}{}
   \renewcommand\cftsecafterpnum{\kern.42bp}
   \renewcommand\cftsubsecafterpnum{\kern.42bp}
   \renewcommand\cftsubsubsecafterpnum{\kern.42bp}
