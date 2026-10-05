@@ -4231,6 +4231,16 @@ delim_1 "\\hspace*{\\fill}"
 \hit@def@term{csupervisor}
 \hit@def@term{cdate}
 
+% 深圳本科报告的封面类型
+\def\hit@reporttype{none}
+\define@key{hit}{reporttype}{%
+  \ifboolexpr{test {\ifstrequal{#1}{none}} or
+    test {\ifstrequal{#1}{thesis}} or test {\ifstrequal{#1}{design}}}
+    {\gdef\hit@reporttype{#1}}
+    {\ClassError{hithesisart}{Invalid reporttype `#1'}%
+      {Use reporttype=none, thesis, or design.}}%
+}
+
 \def\hit@parse@keywords#1{
   \define@key{hit}{#1}{\csname #1\endcsname{##1}}
   \expandafter\gdef\csname hit@#1\endcsname{}
@@ -4409,34 +4419,55 @@ delim_1 "\\hspace*{\\fill}"
     \raisebox{-8bp}{\includegraphics{szbachelor-#1.eps}}%
   }
   \newsavebox\hit@szbachelor@topicbox
-  \newcommand\hit@szbachelor@checkbox{%
-    \begingroup\fboxsep=0pt\fboxrule=.48bp
-    \raisebox{.48bp}{\fbox{\rule{0pt}{7.74bp}\rule{7.74bp}{0pt}}}%
-    \endgroup
+  \newsavebox\hit@szbachelor@fieldbox
+  \newsavebox\hit@szbachelor@infobox
+  \newlength\hit@szbachelor@topicgap
+  % 长学号也可换行
+  \newcommand\hit@szbachelor@breakid[1]{%
+    \@tfor\hit@idchar:=#1\do{\hit@idchar\allowbreak}%
+  }
+  \newcommand\hit@szbachelor@checkbox[1]{%
+    \ifdefstring{\hit@reporttype}{#1}
+      {\includegraphics{szbachelor-checked.eps}}%
+      {\begingroup\fboxsep=0pt\fboxrule=.48bp
+       \raisebox{.48bp}{\fbox{\rule{0pt}{7.74bp}\rule{7.74bp}{0pt}}}%
+       \endgroup}%
   }
   \newcommand\hit@szbachelor@coverfield[3]{%
+    \sbox\hit@szbachelor@fieldbox{\parbox[t]{166.32bp}{%
+      \songti\fontsize{15bp}{29.16bp}\selectfont\raggedright\strut #3\strut}}%
+    \@tempcnta=1 \@tempdima=29.16bp
+    \@tempdimb=\dimexpr\ht\hit@szbachelor@fieldbox+\dp\hit@szbachelor@fieldbox-.1bp\relax
+    \loop\ifdim\@tempdima<\@tempdimb
+      \advance\@tempcnta by1 \advance\@tempdima by29.16bp
+    \repeat
+    \edef\hit@szbachelor@fieldlines{\the\@tempcnta}%
     \vskip#1bp\relax\nointerlineskip
     \hbox{\raisebox{-2bp}{\begin{picture}(415.35,17)(0,-2)
       \put(64.56,0){\heiti\xiaosan\makebox[97.44bp][s]{#2}}%
-      \put(184.44,0){%
-        \parbox[t]{166.32bp}{\songti\xiaosan\raggedright #3}}%
+      \put(184.44,0){\usebox\hit@szbachelor@fieldbox}%
       \put(\hit@szbachelor@fieldleft,0){%
-        \raisebox{-1.32bp}{\rule{\hit@szbachelor@fieldwidth}{.72bp}}}%
+        \begin{picture}(0,0)
+          \multiput(0,-1.32)(0,-29.16){\hit@szbachelor@fieldlines}{%
+            \rule{\hit@szbachelor@fieldwidth}{.72bp}}%
+        \end{picture}}%
     \end{picture}}}%
+    \vskip\dimexpr\ht\hit@szbachelor@fieldbox+\dp\hit@szbachelor@fieldbox-29.16bp\relax
   }
   \newcommand\hit@szbachelor@cover{%
     \begingroup
     \setlength\unitlength{1bp}
     \sbox\hit@szbachelor@topicbox{\parbox[t]{166.32bp}{%
-      \heiti\fontsize{18bp}{43.08bp}\selectfont\raggedright\hit@ctitlecover}}%
-    % 题目区至少保留样例中的两行，较长时由文字的实际高度撑开
-    \ifdim\dimexpr\ht\hit@szbachelor@topicbox+\dp\hit@szbachelor@topicbox\relax<86.16bp
-      \dp\hit@szbachelor@topicbox=\dimexpr86.16bp-\ht\hit@szbachelor@topicbox\relax
+      \heiti\fontsize{18bp}{34.98bp}\selectfont\raggedright\strut\hit@ctitlecover\strut}}%
+    \@tempdima=\dimexpr\ht\hit@szbachelor@topicbox+\dp\hit@szbachelor@topicbox+9.06bp\relax
+    \ifdim\@tempdima<109.44bp
+      \@tempdima=109.44bp
     \fi
-    \@tempcnta=2 \@tempdima=86.16bp
+    \setlength\hit@szbachelor@topicgap{\dimexpr\@tempdima-\dp\hit@szbachelor@topicbox-15bp\relax}%
+    \@tempcnta=2 \@tempdima=69.96bp
     \@tempdimb=\dimexpr\ht\hit@szbachelor@topicbox+\dp\hit@szbachelor@topicbox-.1bp\relax
     \loop\ifdim\@tempdima<\@tempdimb
-      \advance\@tempcnta by1 \advance\@tempdima by43.08bp
+      \advance\@tempcnta by1 \advance\@tempdima by34.98bp
     \repeat
     \edef\hit@szbachelor@topiclines{\the\@tempcnta}
     \ifhit@opening
@@ -4444,33 +4475,39 @@ delim_1 "\\hspace*{\\fill}"
     \else
       \def\hit@szbachelor@fieldleft{174.84}\def\hit@szbachelor@fieldwidth{175.92bp}%
     \fi
-    % 坐标相对封面正文区左上角 (90 bp, 72 bp)
+    % 题目至日期作为一个整体；本页余量不足时整个信息栏移至下一页。
+    \setbox\hit@szbachelor@infobox=\vbox{%
+      \hbox{\rlap{\begin{picture}(0,0)
+        \put(64.56,0){\heiti\xiaoer\makebox[106.44bp][s]{题\hfill 目：}}%
+        \end{picture}}%
+        \rlap{\hskip\hit@szbachelor@fieldleft bp
+          \begin{picture}(0,0)
+          \multiput(0,-1.44)(0,-34.98){\hit@szbachelor@topiclines}{%
+            \rule{\hit@szbachelor@fieldwidth}{.84bp}}%
+        \end{picture}}%
+        \hskip184.44bp
+        \usebox\hit@szbachelor@topicbox}%
+      \vskip\hit@szbachelor@topicgap
+      \hit@szbachelor@coverfield{0}{姓\hfill 名：}{\hit@cauthor}
+      \hit@szbachelor@coverfield{24.16}{学\hfill 号：}{%
+        \expandafter\hit@szbachelor@breakid\expandafter{\hit@cstudentid}}
+      \hit@szbachelor@coverfield{24.16}{学\hfill 院：}{\hit@caffil}
+      \hit@szbachelor@coverfield{24.28}{专\hfill 业：}{\hit@csubject}
+      \hit@szbachelor@coverfield{24.16}{指\hfill 导\hfill 教\hfill 师：}{\hit@csupervisor}
+      \hit@szbachelor@coverfield{24.16}{日\hfill 期：}{\hit@cdate}
+    }%
     \nointerlineskip\hbox{\begin{picture}(415.35,268.92)(0,-268.92)
-      \put(1,-27.12){\hit@szbachelor@checkbox}
+      \put(1,-27.12){\hit@szbachelor@checkbox{thesis}}
       \put(10.68,-27.12){\songti\xiaosi 毕业论文}
-      \put(71.68,-27.12){\hit@szbachelor@checkbox}
+      \put(71.68,-27.12){\hit@szbachelor@checkbox{design}}
       \put(81.36,-27.12){\songti\xiaosi 毕业设计}
       \put(18.25,-108.25){\hit@szbachelor@covertitle{school}}
       \put(.95,-165.35){%
         \ifhit@opening\hit@szbachelor@covertitle{opening}%
         \else\hit@szbachelor@covertitle{midterm}\fi}
-      \put(64.56,-268.92){\heiti\xiaoer\makebox[106.44bp][s]{题\hfill 目：}}
     \end{picture}}%
-    \nobreak\vskip-\ht\hit@szbachelor@topicbox\nointerlineskip
-    \hbox{\hskip\hit@szbachelor@fieldleft bp
-      \rlap{\begin{picture}(0,0)
-        \multiput(0,-1.44)(0,-43.08){\hit@szbachelor@topiclines}{%
-          \rule{\hit@szbachelor@fieldwidth}{.84bp}}%
-      \end{picture}}%
-      \hskip\dimexpr184.44bp-\hit@szbachelor@fieldleft bp\relax
-      \usebox\hit@szbachelor@topicbox}%
-    \vskip\dimexpr8.28bp+\ht\hit@szbachelor@topicbox\relax
-    \hit@szbachelor@coverfield{0}{姓\hfill 名：}{\hit@cauthor}
-    \hit@szbachelor@coverfield{24.16}{学\hfill 号：}{\hit@cstudentid}
-    \hit@szbachelor@coverfield{24.16}{学\hfill 院：}{\hit@caffil}
-    \hit@szbachelor@coverfield{24.28}{专\hfill 业：}{\hit@csubject}
-    \hit@szbachelor@coverfield{24.16}{指\hfill 导\hfill 教\hfill 师：}{\hit@csupervisor}
-    \hit@szbachelor@coverfield{24.16}{日\hfill 期：}{\hit@cdate}
+    \vskip-\ht\hit@szbachelor@topicbox\nointerlineskip
+    \box\hit@szbachelor@infobox
     \endgroup
   }
 \fi
@@ -10165,6 +10202,52 @@ end restore
 %
 % 深圳本科报告的固定标题采用华文新魏轮廓，字号、字宽、字距与描边沿用模板封面
 %    \begin{macrocode}
+%<*szbachelor-checked>
+%%Creator: hithesis, WPS cover checkbox outline
+%%Title: Wingdings 2 checked box (symbol 0x52), 12 bp
+%%BoundingBox: 0 0 10 10
+%%LanguageLevel: 2
+%%Pages: 1
+%%EndComments
+% The cover anchor is 1 bp to the right of the original character origin.
+gsave
+-1 0 translate
+0.005859375 dup scale
+0 setgray
+newpath
+864 371 moveto
+820 342 lineto
+782 317.333333 749.333333 292.666667 722 268 curveto
+716.666667 292 703.333333 330.666667 682 384 curveto
+660 441 lineto
+610 564.333333 567.833333 650.5 533.5 699.5 curveto
+499.166667 748.5 462 775 422 779 curveto
+476 828.333333 523.333333 853 564 853 curveto
+618.666667 853 679 778.666667 745 630 curveto
+781 550 lineto
+955 862 1186.333333 1139.333333 1475 1382 curveto
+271 1382 lineto
+271 99 lineto
+1554 99 lineto
+1554 1347 lineto
+1399.333333 1205.666667 1260.166667 1047.5 1136.5 872.5 curveto
+1012.833333 697.5 922 530.333333 864 371 curveto
+closepath
+1653 1431 moveto
+1653 0 lineto
+173 0 lineto
+173 1480 lineto
+1603 1480 lineto
+1653 1514.666667 1698 1544 1738 1568 curveto
+1767 1516 lineto
+1734.333333 1492.666667 1696.333333 1464.333333 1653 1431 curveto
+closepath
+fill
+grestore
+showpage
+%%EOF
+%</szbachelor-checked>
+
 %<*szbachelor-school>
 %%Creator: hithesis calibrated STXinwei outlines
 %%Title: szbachelor-school
