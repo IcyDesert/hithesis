@@ -794,6 +794,14 @@
 % 注意如果不需要引用参考文献，请删除 \file{main.tex} 中 \cs{bibliography} 开头的两行，
 % 以避免可能的编译错误。
 %
+% \file{hithesis.bst} 与 \file{hitszthesis.bst} 支持 \texttt{article}、
+% \texttt{book}、\texttt{inproceedings}、\texttt{techreport}、\texttt{online}
+% 和 \texttt{unpublished} 等类型。在线资料使用 \texttt{url} 和访问日期
+% \texttt{citedate}；兼容 \texttt{urldate}，两者同时填写时以 \texttt{citedate} 为准。
+% 通用 \texttt{misc} 条目按 Z（其他资料）输出，有 URL 或 DOI 时按 Z/OL 输出；
+% 支持作者、标题、\texttt{howpublished}、年份、版本和访问日期。
+% 对未知类型，会发出警告，并按 \texttt{misc} 保留引用。
+%
 % \subsubsection{列表环境}
 % \DescribeEnv{itemize}
 % \DescribeEnv{enumerate}
@@ -958,6 +966,7 @@ ENTRY                                             % class Entry {
   date                                            %   String date;
   modifydate                                      %   String modifydate;
   citedate                                        %   String citedate;
+  urldate                                         %   String urldate;
   url                                             %   String url;
   doi                                             %   String doi;
   language                                        %   String language;
@@ -2173,10 +2182,12 @@ FUNCTION {output.modifydate} {                    % void Entry::output_modifydat
                                                   %
 FUNCTION {output.citedate} {                      % void Entry::output_citedate(int required) {
   'required :=                                    %   this.required = required;
-  citedate empty$ not {                           %   if (! empty(this.citedate)) {
+  citedate empty$ { urldate } { citedate } if$
+  duplicate$ empty$ not {                         %   if (! empty(effective_citedate)) {
     cap.space write$                              %     write(cap_space);
-    citedate format.citedate write$               %     write(format_citedate(this.citedate));
+    format.citedate write$                         %     write(format_citedate(effective_citedate));
   } {                                             %   } else {
+    pop$
     required is.online or {                       %     if ((required == 1) || (is_online())) {
       "Require citedate: " cite$ * warning$       %       warning("Require citedate: " + this.cite);
     } 'skip$ if$                                  %     }
@@ -2878,8 +2889,27 @@ FUNCTION {news} {                                 % void Entry::news() {
                                                   %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                                                   %
+FUNCTION {misc} {
+  "Z" set.mark
+  start.bibitem
+  false output.author
+  true output.title
+  true output.mark
+  cap.period write$
+  howpublished empty$ not {
+    howpublished write$
+    cap.period write$
+  } 'skip$ if$
+  false output.year
+  false output.version
+  false output.citedate
+  false output.url.or.doi
+  end.bibitem
+}
+
 FUNCTION {default.type} {                         % void Entry::default_type() {
-  "Unsupported entry type for " cite$ * warning$  %   warning("Unsupported entry type for " + this.cite);
+  "Unsupported entry type for " cite$ * "; using misc" * warning$
+  misc
 }                                                 % }
                                                   %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
